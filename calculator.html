@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculator — Tally</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500&family=Inter:wght@400;500;600&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0A0B;
+    --surface:#18191C;
+    --ink:#F2F2EF;
+    --muted:#9A9B96;
+    --accent:#C9A227;
+    --accent-soft:#2B2716;
+    --border:#2A2B2E;
+    --op:#C97B4A;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    perspective:1400px;
+  }
+  .app{
+    width:100%;
+    max-width:360px;
+  }
+  .eyebrow{
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-weight:600;
+    margin-bottom:6px;
+    text-align:center;
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:500;
+    font-size:30px;
+    text-align:center;
+    margin-bottom:20px;
+  }
+  .calc{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:20px;
+    box-shadow:0 20px 50px rgba(20,20,15,.05);
+    transform-style:preserve-3d;
+    transition:transform .15s ease-out, box-shadow .15s ease-out;
+    will-change:transform;
+  }
+  .display{
+    background:#050506;
+    border-radius:10px;
+    padding:22px 18px;
+    margin-bottom:16px;
+    text-align:right;
+    overflow:hidden;
+    box-shadow:inset 0 3px 8px rgba(0,0,0,.5), inset 0 -1px 0 rgba(255,255,255,.06);
+  }
+  .display .prev{
+    color:#B9BAB4;
+    font-family:'Space Mono',monospace;
+    font-size:15px;
+    min-height:20px;
+    word-break:break-all;
+    letter-spacing:.02em;
+  }
+  .display .curr{
+    color:#FFFFFF;
+    font-family:'Space Mono',monospace;
+    font-size:36px;
+    font-weight:700;
+    margin-top:4px;
+    word-break:break-all;
+    line-height:1.15;
+    letter-spacing:.01em;
+  }
+  .keys{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+  }
+  button{
+    border:none;
+    border-radius:10px;
+    font-family:'Inter',sans-serif;
+    font-size:17px;
+    font-weight:500;
+    padding:16px 0;
+    cursor:pointer;
+    background:#212226;
+    color:var(--ink);
+    box-shadow:
+      0 4px 0 #0D0D0F,
+      0 6px 10px rgba(0,0,0,.4);
+    transform:translateY(0) translateZ(0);
+    transition:transform .08s ease, box-shadow .08s ease;
+  }
+  button:hover{filter:brightness(1.15);}
+  button:active{
+    transform:translateY(4px);
+    box-shadow:0 0 0 #0D0D0F, 0 2px 4px rgba(0,0,0,.4);
+  }
+  button.op{
+    background:var(--op);
+    color:#fff;
+    box-shadow:0 4px 0 #8A4E2A, 0 6px 10px rgba(0,0,0,.35);
+  }
+  button.op:active{ box-shadow:0 0 0 #8A4E2A, 0 2px 4px rgba(0,0,0,.4); }
+  button.func{
+    background:#2C2D31;
+    color:var(--muted);
+    box-shadow:0 4px 0 #131316, 0 6px 10px rgba(0,0,0,.35);
+  }
+  button.func:active{ box-shadow:0 0 0 #131316, 0 2px 4px rgba(0,0,0,.4); }
+  button.equals{
+    background:var(--accent);
+    color:#0A0A0B;
+    grid-column:span 2;
+    box-shadow:0 4px 0 #8F7318, 0 6px 12px rgba(0,0,0,.4);
+  }
+  button.equals:active{ box-shadow:0 0 0 #8F7318, 0 2px 4px rgba(0,0,0,.4); }
+  button.zero{grid-column:span 2;}
+  footer{
+    text-align:center;
+    margin-top:16px;
+    color:var(--muted);
+    font-size:12px;
+  }
+  kbd{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:4px;
+    padding:1px 5px;
+    font-family:'Space Mono',monospace;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="eyebrow">02 · Arithmetic</div>
+  <h1>Tally</h1>
+  <div class="calc">
+    <div class="display">
+      <div class="prev" id="prevDisplay">&nbsp;</div>
+      <div class="curr" id="currDisplay">0</div>
+    </div>
+    <div class="keys">
+      <button class="func" data-action="clear">AC</button>
+      <button class="func" data-action="sign">±</button>
+      <button class="func" data-action="percent">%</button>
+      <button class="op" data-action="divide">÷</button>
+
+      <button data-num="7">7</button>
+      <button data-num="8">8</button>
+      <button data-num="9">9</button>
+      <button class="op" data-action="multiply">×</button>
+
+      <button data-num="4">4</button>
+      <button data-num="5">5</button>
+      <button data-num="6">6</button>
+      <button class="op" data-action="subtract">−</button>
+
+      <button data-num="1">1</button>
+      <button data-num="2">2</button>
+      <button data-num="3">3</button>
+      <button class="op" data-action="add">+</button>
+
+      <button class="zero" data-num="0">0</button>
+      <button data-action="decimal">.</button>
+      <button class="equals" data-action="equals">=</button>
+    </div>
+  </div>
+  <footer>Keyboard supported — numbers, <kbd>+ − × /</kbd>, <kbd>Enter</kbd>, <kbd>Esc</kbd></footer>
+</div>
+
+<script>
+const prevDisplay = document.getElementById("prevDisplay");
+const currDisplay = document.getElementById("currDisplay");
+
+let current = "0";
+let previous = null;
+let operator = null;
+let justEvaluated = false;
+
+function updateDisplay(){
+  currDisplay.textContent = current;
+  prevDisplay.textContent = previous !== null && operator ? `${formatNum(previous)} ${symbol(operator)}` : "\u00A0";
+}
+
+function symbol(op){
+  return {add:"+", subtract:"−", multiply:"×", divide:"÷"}[op] || "";
+}
+
+function formatNum(n){
+  if (n === null || n === undefined) return "";
+  const num = Number(n);
+  if (Number.isInteger(num)) return num.toLocaleString();
+  return num.toString();
+}
+
+function inputNum(d){
+  if(justEvaluated){
+    current = d === "." ? "0." : d;
+    justEvaluated = false;
+    updateDisplay();
+    return;
+  }
+  if(d === "." && current.includes(".")) return;
+  if(current === "0" && d !== ".") current = d;
+  else current += d;
+  updateDisplay();
+}
+
+function chooseOperator(op){
+  if(operator && !justEvaluated) compute();
+  operator = op;
+  previous = parseFloat(current);
+  justEvaluated = false;
+  current = "0";
+  updateDisplay();
+}
+
+function compute(){
+  if(operator === null || previous === null) return;
+  const cur = parseFloat(current);
+  let result;
+  switch(operator){
+    case "add": result = previous + cur; break;
+    case "subtract": result = previous - cur; break;
+    case "multiply": result = previous * cur; break;
+    case "divide": result = cur === 0 ? NaN : previous / cur; break;
+    default: return;
+  }
+  result = Math.round((result + Number.EPSILON) * 1e10) / 1e10;
+  current = isNaN(result) ? "Error" : result.toString();
+  operator = null;
+  previous = null;
+  justEvaluated = true;
+  updateDisplay();
+}
+
+function clearAll(){
+  current = "0"; previous = null; operator = null; justEvaluated = false;
+  updateDisplay();
+}
+
+function toggleSign(){
+  if(current === "0") return;
+  current = current.startsWith("-") ? current.slice(1) : "-" + current;
+  updateDisplay();
+}
+
+function percent(){
+  current = (parseFloat(current) / 100).toString();
+  updateDisplay();
+}
+
+document.querySelector(".keys").addEventListener("click", e=>{
+  const btn = e.target.closest("button");
+  if(!btn) return;
+  if(btn.dataset.num !== undefined) return inputNum(btn.dataset.num);
+  switch(btn.dataset.action){
+    case "clear": return clearAll();
+    case "sign": return toggleSign();
+    case "percent": return percent();
+    case "decimal": return inputNum(".");
+    case "equals": return compute();
+    default: return chooseOperator(btn.dataset.action);
+  }
+});
+
+document.addEventListener("keydown", e=>{
+  if(e.key >= "0" && e.key <= "9") return inputNum(e.key);
+  if(e.key === ".") return inputNum(".");
+  if(e.key === "+") return chooseOperator("add");
+  if(e.key === "-") return chooseOperator("subtract");
+  if(e.key === "*") return chooseOperator("multiply");
+  if(e.key === "/"){ e.preventDefault(); return chooseOperator("divide"); }
+  if(e.key === "Enter" || e.key === "=") return compute();
+  if(e.key === "Escape") return clearAll();
+  if(e.key === "Backspace"){
+    current = current.length > 1 ? current.slice(0,-1) : "0";
+    updateDisplay();
+  }
+});
+
+updateDisplay();
+
+// 3D tilt: the calculator body leans gently toward the cursor (mouse devices only)
+const calcEl = document.querySelector(".calc");
+const hasHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+if(hasHover){
+  document.addEventListener("mousemove", e=>{
+    const rect = calcEl.getBoundingClientRect();
+    const cx = rect.left + rect.width/2;
+    const cy = rect.top + rect.height/2;
+    const dx = (e.clientX - cx) / (window.innerWidth/2);
+    const dy = (e.clientY - cy) / (window.innerHeight/2);
+    const rotY = Math.max(-8, Math.min(8, dx * 8));
+    const rotX = Math.max(-8, Math.min(8, -dy * 8));
+    calcEl.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+  });
+  document.addEventListener("mouseleave", ()=>{
+    calcEl.style.transform = "rotateX(0) rotateY(0)";
+  });
+}
+</script>
+</body>
+</html>
